@@ -10,53 +10,56 @@ const userSchema = new Schema(
             unique: true,
             lowercase: true,
             trim: true,
-            index: true
+            index: true,
         },
         email: {
             type: String,
             unique: true,
             required: true,
             trim: true,
-            lowercase: true
+            lowercase: true,
         },
         fullName: {
             type: String,
             trim: true,
             index: true,
-            required: true
+            required: true,
         },
         avatar: {
             type: String, //Cloudinary url
-            required: true
+            required: true,
         },
         coverImage: {
             type: String, //Cloudinary
         },
         watchHistory: [
             {
-                type: Schema.Types.objectId,
-                ref: "Video"
+                type: Schema.Types.ObjectId,
+                ref: "Video",
             }
         ],
         password: {
             type: String,
             required: [true, "Password is required"],
-            min: [6, "Minimum 6 length required"]
+            min: [6, "Password should be of length 6"],
         },
         refreshToken: {
             type: String
         }
-    }, { timestamps: true }
+    }, 
+    { 
+        timestamps: true 
+    }
 )
 
 userSchema.pre("save", async function (next) {
-    if (this.isModified("passowrd")) {
-        this.password = bcrypt.hash(this.password, 10)
+    if (this.isModified("password")) {
+        this.password = await bcrypt.hash(this.password, 10)
     }
     return next()
 })
 
-userSchema.methods.isPassowordCorrect = async function(password){
+userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password)
 }
 
