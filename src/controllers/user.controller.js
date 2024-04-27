@@ -1,10 +1,9 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"
-import { User } from "../models/user.models.js"
+import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
-import { mongo, syncIndexes } from "mongoose";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -199,8 +198,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body
+
     const user = await User.findById(req.user._id);
-    const isOldPasswordCorrect = user.isPasswordCorrect(oldPassword);
+    const isOldPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+    console.log("The old password is correct ::",user.isPasswordCorrect(oldPassword))
 
     if (!isOldPasswordCorrect) {
         throw new ApiError(400, "Old Password Incorrect");
