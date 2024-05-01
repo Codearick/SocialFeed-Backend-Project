@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary, deleteOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -107,7 +107,6 @@ const loginUser = asyncHandler(async (req, res) =>{
     //send cookie
 
     const {email, username, password} = req.body
-    console.log(email);
 
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
@@ -135,7 +134,7 @@ const loginUser = asyncHandler(async (req, res) =>{
 
    const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
 
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken -email")
 
     const options = {
         httpOnly: true,
@@ -231,13 +230,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
-const changeCurrentPassword = asyncHandler(async(req, res) => {
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+
     const {oldPassword, newPassword} = req.body
 
-    
-
     const user = await User.findById(req.user?._id)
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+    
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
     if (!isPasswordCorrect) {
         throw new ApiError(400, "Invalid old password")
@@ -293,7 +292,11 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
 
-    //TODO: delete old image - assignment
+    //TODO: delete old image - assignment :: DONE!!
+    const deleteOldImage = await deleteOnCloudinary(req.user.avatar);
+    if(!deleteOldImage){
+        throw new ApiError(500, "Failed to delete old image");
+    }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
