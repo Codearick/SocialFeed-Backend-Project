@@ -43,8 +43,13 @@ const getAllVideos = asyncHandler(async (req, res) => {
             pipeline.push(sortStage);
         }
 
-        const videos = await Video.aggregate.paginate(pipeline)
-        return res.status(200).json(new ApiResponse(200, videos, "Vidoes fetched successfully!"))
+        const videos = await Video.aggregate.paginate(pipeline);
+
+        if(!videos){
+            throw new ApiError(500, "Something went wrong while retrieving the comments");
+        }
+
+        return res.status(200).json(new ApiResponse(200, videos, "Vidoes fetched successfully!"));
 
     } catch (error) {
         throw new ApiError(500, "Error paginating vidoes!")
@@ -86,11 +91,13 @@ const publishAVideo = asyncHandler(async (req, res) => {
             videoFile: cloudinaryVideo.url,
             thumbnail: cloudinaryThumbnail?.url,
             title,
-            description,
+            description: description || "",
             duration: cloudinaryVideo.duration,
             owner: req.user._id
         }
     )
+
+    await video.save();
 
     const uploadedVideo = await Video.findById(video._id)
     if (!uploadedVideo) {
@@ -109,7 +116,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     }
 
     try {
-        const video = await Video.findById({ _id: videoId });
+        const video = await Video.findById(videoId);
 
         console.log("RESPONSE FROM MONGOOSE AFTER FINDBYID :: ", video);
 
@@ -160,7 +167,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         videoId,
         {
             $set: {
-                thumbnail: cloudinaryThumbnail.url,
+                thumbnail: cloudinaryThumbnail?.url,
                 title,
                 description: description || " "
             }
@@ -179,6 +186,9 @@ const updateVideo = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
+    if (!videoId) {
+        throw new ApiError(400, "video Id is missing")
+    }
 
     const deletedVideo = await Video.findByIdAndDelete({_id : videoId})
 
