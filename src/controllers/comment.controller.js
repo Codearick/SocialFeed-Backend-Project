@@ -1,8 +1,8 @@
 import mongoose from "mongoose"
-import { Comment } from "../models/comment.model"
-import { ApiResonse, ApiResponse} from "../utils/ApiResponse"
-import { ApiError} from "../utils/ApiError"
-import { asyncHandler } from "../utils/asyncHandler"
+import { Comment } from "../models/comment.model.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { ApiError} from "../utils/ApiError.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     const {videoId} = req.params;
@@ -95,3 +95,10 @@ const deleteComment = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResonse(200, deletedComment, "Comment deleted Successfully!"));
     
 })
+
+export {
+    getVideoComments,
+    addComment,
+    updateComment,
+    deleteComment
+}
