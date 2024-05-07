@@ -80,11 +80,44 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
     const { subscriberId } = req.params
-    if( !subscriberId ){
+    if( !subscriberId || !isValidObjectId(subscriberId) ){
         throw new ApiError(404, "Please provide valid subscriber id")
     }
 
-    
+    const subscribedTo = await Subscription.aggregate([
+        {
+            $match: { subscriber: new mongoose.Types.ObjectId(subscriberId)}
+        },
+        {
+            $lookup: {
+                from : "users",
+                localField: "channel",
+                foreignField: "_id",
+                as: "subscribedTo",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            fullname: 1, 
+                            avatar: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $project: {
+                subscribedTo : 1,
+                createdAt: 1
+            }
+        }
+    ])
+
+    if(!subscribedTo){
+        throw new ApiError(500, "Failed to retrieve subscribed channel list!")
+    }
+
+    return res.status(200).json(new ApiResponse(200, subscribedTo, "Subscribed channel list retrived successfully!"))
 })
 
 export {
