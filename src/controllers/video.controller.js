@@ -124,9 +124,17 @@ const getVideoById = asyncHandler(async (req, res) => {
             throw new ApiError(500, "Cannot find the video with that id");
         }
 
+        await Video.findByIdAndUpdate(videoId, 
+            {
+                $inc: {
+                    views: 1
+                }
+            }
+        ); 
+
         return res.status(200).json(new ApiResponse(200, video, "Video fetched successfully!"));
     } catch (error) {
-        throw new ApiError(500, message = error.msessage || "Internal Server Error!")
+        throw new ApiError(500, error.msessage || "Internal Server Error!")
     }
 
 })
