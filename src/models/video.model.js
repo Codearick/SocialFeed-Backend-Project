@@ -5,23 +5,22 @@ const videoSchema = new Schema(
     {
         videoFile: {
             type: String, //Cloudinary 
-            required: ["true", "Video is required"],
+            required: [true, "Video is required"],
         },
         thumbnail: {
             type: String, //Cloudinary 
-            required: ["true", "Video is required"],
+            required: [true, "thumbnail is required"],
         },
         title: {
             type: String, 
-            required: ["true", "Video is required"],
+            required: [true, "title is required"],
         },
         description: {
             type: String, 
-            required: ["true", "Video is required"],
         },
         duration: {
             type: Number, //Cloudinary 
-            required: "true"
+            required: true
         },
         views: {
             type: Number,
