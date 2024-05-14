@@ -8,7 +8,7 @@ const createPlaylist = asyncHandler( async(req, res) => {
     const {name, description } = req.body
     const owner = req.user._id;
 
-    if(!name.length > 3){
+    if(!name || name.length <= 0){
         throw new ApiError(404, "Please enter valid playlist name");
     }
 
