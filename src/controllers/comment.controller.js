@@ -1,27 +1,27 @@
 import mongoose from "mongoose"
 import { Comment } from "../models/comment.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-import { ApiError} from "../utils/ApiError.js"
+import { ApiError } from "../utils/ApiError.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
-    const {videoId} = req.params;
-    const {page = 1, limit = 15} = req.query
+    const { videoId } = req.params;
+    const { page = 1, limit = 15 } = req.query
 
-    if(!videoId){
+    if (!videoId) {
         throw new ApiError(404, "Video Id is required!");
     }
 
     const pipeline = [
-        {$match : {videoId: mongoose.Types.ObjectId(videoId) }},
-        {$sort: { createdAt: -1 }}
+        { $match: { videoId: new mongoose.Types.ObjectId(videoId) } },
+        { $sort: { createdAt: -1 } }
     ];
 
-    const options = {page: parseInt(page), limit: parseInt(limit)};
+    const options = { page: parseInt(page), limit: parseInt(limit) };
 
     const comment = await Comment.aggregatePaginate(pipeline, options);
 
-    if(!comment){
+    if (!comment) {
         throw new ApiError(500, "Failed to retrieve comments")
     }
 
@@ -30,9 +30,11 @@ const getVideoComments = asyncHandler(async (req, res) => {
 })
 
 const addComment = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    const { content } = req.body
+    const { videoId } = req.params;
+    const { content } = req.body;
     const owner = req.user._id;
+
+    console.log("VideoID :: ", videoId, "content :: ", content, "owner :: ", owner);
 
     if (!videoId || !owner || !content) {
         throw new ApiError(400, "Video ID, content, and user ID are required to add a comment.");
@@ -47,7 +49,7 @@ const addComment = asyncHandler(async (req, res) => {
         }
     )
 
-    if (!comment){
+    if (!comment) {
         throw new ApiError(500, "Failed to create a comment!")
     }
 
@@ -58,8 +60,8 @@ const updateComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params
     const { content } = req.body
 
-    if(!commentId){
-        throw new ApiError(404, "Comment Id is required!")
+    if (!commentId || !content) {
+        throw new ApiError(404, "Comment Id and content is required!")
     }
 
     const updatedComment = await Comment.findByIdAndUpdate(
@@ -69,31 +71,33 @@ const updateComment = asyncHandler(async (req, res) => {
                 content: content
             }
         },
-        {new: true}
+        { new: true }
     )
 
-    if(!updatedComment){
+    if (!updatedComment) {
         throw new ApiError(500, "Failed to update your comment!")
     }
 
-    return res.status(200).json(new ApiResonse(200, updatedComment, "Comment updated successfully!"));
+    return res.status(200).json(new ApiResponse(200, updatedComment, "Comment updated successfully!"));
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
-    const {commentId} = req.params;
+    const { commentId } = req.params;
 
-    if(!commentId){
+    if (!commentId) {
         throw new ApiError(404, "Comment id is required!")
     }
 
-    const deletedComment = await Comment.findByIdAndDelete(commentId, {new: true});
+    const deletedComment = await Comment.findByIdAndDelete({_id: commentId});
 
-    if(!deletedComment){
+    console.log("deletedComment :: ",deletedComment);
+
+    if (!deletedComment) {
         throw new ApiError(404, "Failed to delete the comment")
     }
 
-    return res.status(200).json(new ApiResonse(200, deletedComment, "Comment deleted Successfully!"));
-    
+    return res.status(200).json(new ApiResponse(200, deletedComment, "Comment deleted Successfully!"));
+
 })
 
 export {
