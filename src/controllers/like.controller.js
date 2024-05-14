@@ -14,25 +14,22 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     let toggledVideoLike = await Like.findOne(
         {
             video: videoId,
-            likedBy: req.user._id
+            likedBy: req.user?._id
         }
     )
 
-    if (toggleVideoLike) {
-        await toggledVideoLike.remove();
-    } else {
+    if (!toggledVideoLike) {
         try {
-            toggledVideoLike = await Like.create({ video: videoId, likedBy: req.user._id });
+            const toggleOn = await Like.create({ video: videoId, likedBy: req.user._id });
+            return res.status(200).json(new ApiResponse(200, toggleOn, "Video like toggled on successfully!"));
         } catch (error) {
             // Handle the error
-            console.error("Error toggling video like:", error);
             throw new ApiError(500, "Error toggling the video like. Please try again later.");
         }
     }
 
-    const liked = !!toggledVideoLike; // Convert to boolean
-    const message = liked ? "Video like toggled on successfully!" : "Video like toggled off successfully!"
-    return res.status(200).json(new ApiResponse(200, liked, message));
+    const toggleOff = await Like.findByIdAndDelete(toggledVideoLike._id);
+    return res.status(200).json(new ApiResponse(200, toggleOff, "Video like toggled off successfully!"));
 })
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -50,23 +47,14 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
         }
     )
 
-    if (toggledCommentLike) {
-        await toggledCommentLike.remove();
+    if (!toggledCommentLike) {
+        const toggleOn = await Like.create({ comment: commentId, likedBy: req.user._id });
 
-    } else {
-        try {
-            toggledCommentLike = await Like.create({ comment: commentId, likedBy: req.user._id });
-        } catch (error) {
-            // Handle the error
-            console.error("Error toggling comment like:", error);
-            throw new ApiError(500, "Error toggling the comment like. Please try again later.");
-        }
+        return res.status(200).json(new ApiResponse(200, toggleOn, "Comment like toggled on successfully!"));
     }
 
-    const liked = !!toggledCommentLike;
-    const message = liked ? "Comment like toggled on Successfully" : "Comment like toggled off successfully!"
-
-    return res.status(200).json(new ApiResponse(200, liked, message));
+    const toggleOff = await Like.findByIdAndDelete(toggledCommentLike._id);
+    return res.status(200).json(new ApiResponse(200, toggleOff, "Comment like toggled off successfully!"));
 
 })
 
@@ -85,23 +73,15 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
         }
     )
 
-    if (toggledTweetLike) {
-        await toggledTweetLike.remove();
+    if (!toggledTweetLike) {
+        const toggleOn = await Like.create({ tweet: tweetId, likedBy: req.user._id });
 
-    } else {
-        try {
-            toggledTweetLike = await Like.create({ tweet: tweetId, likedBy: req.user._id });
-        } catch (error) {
-            // Handle the error
-            console.error("Error toggling tweet like:", error);
-            throw new ApiError(500, "Error toggling the tweet like. Please try again later.");
-        }
+        return res.status(200).json(new ApiResponse(200, toggleOn, "Tweet like toggled on successfully!"));
     }
 
-    const liked = !!toggledTweetLike;
-    const message = liked ? "Tweet like toggled on Successfully" : "Tweet like toggled off successfully!"
+    const toggleOff = await Like.findByIdAndDelete(toggledTweetLike._id);
+    return res.status(200).json(new ApiResponse(200, toggleOff, "Tweet like toggled off successfully!"));
 
-    return res.status(200).json(new ApiResponse(200, liked, message));
 })
 
 const getLikedVideos = asyncHandler(async (req, res) => {
@@ -111,14 +91,13 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     const likedVideo = await Like.aggregate([
         {
             $match: {
-                likedBy: userId
+                likedBy: new mongoose.Types.ObjectId(userId)
             }
         },
         {
             $project: {
                 video: 1,
-                comment: 0,
-                tweet: 0,
+
             }
         }
     ]);
