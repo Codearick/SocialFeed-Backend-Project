@@ -41,16 +41,13 @@ const getChannelStats = asyncHandler(async (req, res) => {
         {
             $lookup: {
                 from: "users",
-                localField: subscriber,
+                localField: "subscriber",
                 foreignField: "_id",
                 as: "totalSubscriber",
             }
         },
         {
-            $project: { $size: "$totalSubscriber" }
-        },
-        {
-            $addFields: { totalSubscribers: "$totalSubscribers" }
+            $addFields: { totalSubscribers: { $size: "$totalSubscriber" } }
         },
         {
             $project: { _id: 0, totalSubscribers: 1 }
@@ -126,9 +123,11 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     // TODO: Get all the videos uploaded by the channel
     const channelId = req.user._id;
 
-    const channelVideos = await Video.find({ channelId });
+    console.log("This is channelID ::", channelId)
 
-    if (channelVideos.length < 1) {
+    const channelVideos = await Video.find({ owner: channelId });
+
+    if (channelVideos.length <= 0) {
         throw new ApiError(500, "Channel has no videos.");
     }
 
