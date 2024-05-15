@@ -1,4 +1,4 @@
-import mongoose, {Schema} from "mongoose"
+import mongoose, { Schema } from "mongoose"
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
 
 const videoSchema = new Schema(
@@ -16,15 +16,15 @@ const videoSchema = new Schema(
                 url: String,
                 public_id: String,
             }, //Cloudinary 
-            
+
             required: [true, "thumbnail is required"],
         },
         title: {
-            type: String, 
+            type: String,
             required: [true, "title is required"],
         },
         description: {
-            type: String, 
+            type: String,
         },
         duration: {
             type: Number, //Cloudinary 
@@ -43,8 +43,13 @@ const videoSchema = new Schema(
             ref: "User"
         }
     },
-    {timestamps: true}
+    { timestamps: true }
+)
+
+videoSchema.index(
+    { title: "text", description: "text" },
+    { name: "search-videos", weights: { title: 3, description: 1 } }
 )
 
 videoSchema.plugin(mongooseAggregatePaginate)
-export const Video = mongoose.model("Video",videoSchema)
+export const Video = mongoose.model("Video", videoSchema)
