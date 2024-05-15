@@ -7,15 +7,16 @@
 - Comments controller
 - Videos controller
 - Healthcheck controller
+- Playlist controller
+- Subscription controller
 
 # Currently working on: 
-- Playlist controller : 
-Tested : CreatePlaylist, getPlaylistById.
+- Tweet controller : 
+Tested : All the functions 
 To Test: Remaining functions.
 
-# To Test: 
-- Subscription controller.
+# To enhance controllers: 
+- Tweets(getAllTweets) and Videos (getUserVideos)
 
-# To enhance functions of: 
-- Tweet controller.
+
                       
