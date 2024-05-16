@@ -4,27 +4,6 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
-const createTweet = asyncHandler(async (req, res) => {
-    //TODO: create tweet
-    const { content } = req.body
-
-    if (!content || content?.trim().length < 1) {
-        throw new ApiError(400, "Content is required!")
-    }
-
-    const tweet = await Tweet.create(
-        {
-            owner: req.user?._id,
-            content
-        },
-    )
-
-    if (!tweet) throw new ApiError(500, "Something went wrong while creating tweet")
-
-    return res.status(200).json(new ApiResponse(200, tweet, "Tweet created successfully!"))
-
-})
-
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
     const { page = 1, limit = 10, query, sortBy, sortType, owner } = req.query;
@@ -111,6 +90,27 @@ const getUserTweets = asyncHandler(async (req, res) => {
     paginatedTweets.docs = tweetWithOwnerDetails;
 
     return res.status(200).json(new ApiResponse(200, paginatedTweets, "Tweet retrieved successfully"));
+})
+
+const createTweet = asyncHandler(async (req, res) => {
+    //TODO: create tweet
+    const { content } = req.body
+
+    if (!content || content?.trim().length < 1) {
+        throw new ApiError(400, "Content is required!")
+    }
+
+    const tweet = await Tweet.create(
+        {
+            owner: req.user?._id,
+            content
+        },
+    )
+
+    if (!tweet) throw new ApiError(500, "Something went wrong while creating tweet")
+
+    return res.status(200).json(new ApiResponse(200, tweet, "Tweet created successfully!"))
+
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
